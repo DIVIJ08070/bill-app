@@ -15,6 +15,7 @@ export default function RegisterScreen() {
     city: '',
     state: '',
     state_code: '',
+    pincode: '',
     gstin: '',
     phone: '',
     admin_name: '',
@@ -33,6 +34,10 @@ export default function RegisterScreen() {
       setError('Company name, your name, email and an 8+ char password are required');
       return;
     }
+    if (form.pincode && !/^\d{6}$/.test(form.pincode)) {
+      setError('Pincode must be exactly 6 digits');
+      return;
+    }
     setLoading(true);
     try {
       await signUp({
@@ -40,6 +45,7 @@ export default function RegisterScreen() {
         city: form.city || undefined,
         state: form.state || undefined,
         state_code: form.state_code || undefined,
+        pincode: form.pincode || undefined,
         gstin: form.gstin || undefined,
         phone: form.phone || undefined,
         admin_name: form.admin_name,
@@ -72,6 +78,7 @@ export default function RegisterScreen() {
             <AppInput label="Code" value={form.state_code} onChangeText={set('state_code')} placeholder="24" keyboardType="number-pad" />
           </View>
         </View>
+        <AppInput label="Pincode" value={form.pincode} onChangeText={set('pincode')} placeholder="6 digits" keyboardType="number-pad" maxLength={6} />
         <AppInput label="GSTIN (leave empty for non-GST bills)" value={form.gstin} onChangeText={set('gstin')} autoCapitalize="characters" placeholder="24ABCDE1234F1Z5" />
         <AppInput label="Phone" value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" />
 

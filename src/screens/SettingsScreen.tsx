@@ -20,37 +20,41 @@ const BRANDING: { key: BrandingKey; label: string }[] = [
 export default function SettingsScreen() {
   const { company, user, signOut, refreshCompany } = useAuth();
   const [form, setForm] = useState({
-    name: company?.name ?? '',
     address: company?.address ?? '',
     city: company?.city ?? '',
     state: company?.state ?? '',
     state_code: company?.state_code ?? '',
+    pincode: company?.pincode ?? '',
     gstin: company?.gstin ?? '',
     bank_name: company?.bank_name ?? '',
     bank_account_no: company?.bank_account_no ?? '',
     bank_ifsc: company?.bank_ifsc ?? '',
     upi_number: company?.upi_number ?? '',
-    invoice_prefix: company?.invoice_prefix ?? 'INV/',
     default_note: company?.default_note ?? '',
   });
   const [saving, setSaving] = useState(false);
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   async function onSave() {
+    if (form.pincode && !/^\d{6}$/.test(form.pincode)) {
+      Alert.alert('Invalid pincode', 'Pincode must be exactly 6 digits.');
+      return;
+    }
     setSaving(true);
     try {
+      // Company name and invoice prefix are locked to the company identity and
+      // are only editable by the administrator, so they are not sent here.
       await CompanyAPI.update({
-        name: form.name,
         address: form.address || null,
         city: form.city || null,
         state: form.state || null,
         state_code: form.state_code || null,
+        pincode: form.pincode || null,
         gstin: form.gstin || null,
         bank_name: form.bank_name || null,
         bank_account_no: form.bank_account_no || null,
         bank_ifsc: form.bank_ifsc || null,
         upi_number: form.upi_number || null,
-        invoice_prefix: form.invoice_prefix || 'INV/',
         default_note: form.default_note || null,
       } as any);
       await refreshCompany();
@@ -87,7 +91,11 @@ export default function SettingsScreen() {
     <Screen>
       <Card>
         <Text style={styles.title}>Company</Text>
-        <AppInput label="Company name" value={form.name} onChangeText={set('name')} />
+        <ReadOnlyField label="Company name" value={company?.name ?? '—'} />
+        <ReadOnlyField label="Invoice prefix" value={company?.invoice_prefix ?? '—'} />
+        <Text style={styles.lockNote}>
+          Company name and invoice prefix are set by the administrator and can't be changed here.
+        </Text>
         <AppInput label="Address" value={form.address} onChangeText={set('address')} multiline />
         <View style={styles.row}>
           <View style={styles.flex}>
@@ -100,8 +108,15 @@ export default function SettingsScreen() {
             <AppInput label="Code" value={form.state_code} onChangeText={set('state_code')} keyboardType="number-pad" />
           </View>
         </View>
+        <AppInput
+          label="Pincode"
+          value={form.pincode}
+          onChangeText={set('pincode')}
+          keyboardType="number-pad"
+          maxLength={6}
+          placeholder="6 digits"
+        />
         <AppInput label="GSTIN (empty = non-GST bills)" value={form.gstin} onChangeText={set('gstin')} autoCapitalize="characters" />
-        <AppInput label="Invoice prefix" value={form.invoice_prefix} onChangeText={set('invoice_prefix')} placeholder="EH/" />
       </Card>
 
       <Card>
@@ -143,6 +158,9 @@ export default function SettingsScreen() {
 
       <Card>
         <Text style={styles.muted}>Signed in as {user?.email}</Text>
+        <Text style={styles.muted}>
+          To change your company name or password, please contact the administrator.
+        </Text>
       </Card>
       <AppButton title="Logout" variant="danger" onPress={signOut} />
       <View style={{ height: spacing.lg }} />
@@ -150,9 +168,32 @@ export default function SettingsScreen() {
   );
 }
 
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.readonlyWrap}>
+      <Text style={styles.readonlyLabel}>{label}</Text>
+      <View style={styles.readonlyBox}>
+        <Text style={styles.readonlyValue}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   title: { fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: spacing.md },
   muted: { color: colors.textMuted, fontSize: 13, marginBottom: spacing.sm },
+  lockNote: { color: colors.textMuted, fontSize: 12, marginBottom: spacing.md },
+  readonlyWrap: { marginBottom: spacing.md },
+  readonlyLabel: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginBottom: 6 },
+  readonlyBox: {
+    backgroundColor: colors.inputBg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+  },
+  readonlyValue: { fontSize: 16, color: colors.textMuted },
   row: { flexDirection: 'row', gap: spacing.sm },
   flex: { flex: 1 },
   codeBox: { width: 70 },

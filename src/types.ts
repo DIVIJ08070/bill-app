@@ -147,6 +147,7 @@ export interface RegisterPayload {
   city?: string;
   state?: string;
   state_code?: string;
+  pincode?: string;
   phone?: string;
   gstin?: string;
   admin_name: string;
