@@ -62,6 +62,17 @@ export interface Party {
   email?: string | null;
 }
 
+export interface Item {
+  id: number;
+  company_id: number;
+  name: string;
+  hsn_code?: string | null;
+  unit?: string | null;
+  default_rate: number;
+  default_gst_rate: number;
+  description?: string | null;
+}
+
 export interface InvoiceItem {
   id: number;
   sr_no: number;
@@ -165,6 +176,15 @@ export interface PartyInput {
   gstin?: string;
   phone?: string;
   email?: string;
+}
+
+export interface ItemInput {
+  name: string;
+  hsn_code?: string;
+  unit?: string;
+  default_rate?: number;
+  default_gst_rate?: number;
+  description?: string;
 }
 
 export interface NewInvoiceItem {

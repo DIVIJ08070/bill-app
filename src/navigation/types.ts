@@ -5,12 +5,14 @@ export type RootStackParamList = {
   CreateInvoice: undefined;
   InvoiceDetail: { id: number };
   PartyForm: { id?: number } | undefined;
+  ItemForm: { id?: number } | undefined;
 };
 
 export type TabParamList = {
   Dashboard: undefined;
   Invoices: undefined;
   Parties: undefined;
+  Items: undefined;
   Settings: undefined;
 };
 

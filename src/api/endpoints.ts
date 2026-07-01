@@ -6,6 +6,8 @@ import type {
   Dashboard,
   Invoice,
   InvoiceSummary,
+  Item,
+  ItemInput,
   NewInvoice,
   Party,
   PartyInput,
@@ -48,6 +50,19 @@ export const PartyAPI = {
   update: (id: number, payload: PartyInput) =>
     api.patch<Party>(`/parties/${id}`, payload).then((r) => r.data),
   remove: (id: number) => api.delete(`/parties/${id}`).then((r) => r.data),
+};
+
+export const ItemAPI = {
+  list: (search?: string) =>
+    api
+      .get<Item[]>('/items', { params: search ? { search } : {} })
+      .then((r) => r.data),
+  get: (id: number) => api.get<Item>(`/items/${id}`).then((r) => r.data),
+  create: (payload: ItemInput) =>
+    api.post<Item>('/items', payload).then((r) => r.data),
+  update: (id: number, payload: ItemInput) =>
+    api.patch<Item>(`/items/${id}`, payload).then((r) => r.data),
+  remove: (id: number) => api.delete(`/items/${id}`).then((r) => r.data),
 };
 
 export const InvoiceAPI = {

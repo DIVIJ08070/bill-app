@@ -12,10 +12,12 @@ import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import InvoicesScreen from '../screens/InvoicesScreen';
 import PartiesScreen from '../screens/PartiesScreen';
+import ItemsScreen from '../screens/ItemsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import CreateInvoiceScreen from '../screens/CreateInvoiceScreen';
 import InvoiceDetailScreen from '../screens/InvoiceDetailScreen';
 import PartyFormScreen from '../screens/PartyFormScreen';
+import ItemFormScreen from '../screens/ItemFormScreen';
 import type { RootStackParamList, TabParamList } from './types';
 
 type AuthStackParamList = { Login: undefined; Register: undefined };
@@ -28,6 +30,7 @@ const tabIcon: Record<keyof TabParamList, keyof typeof Ionicons.glyphMap> = {
   Dashboard: 'grid-outline',
   Invoices: 'document-text-outline',
   Parties: 'people-outline',
+  Items: 'pricetags-outline',
   Settings: 'settings-outline',
 };
 
@@ -48,6 +51,7 @@ function MainTabs() {
       <Tabs.Screen name="Dashboard" component={DashboardScreen} />
       <Tabs.Screen name="Invoices" component={InvoicesScreen} />
       <Tabs.Screen name="Parties" component={PartiesScreen} />
+      <Tabs.Screen name="Items" component={ItemsScreen} />
       <Tabs.Screen name="Settings" component={SettingsScreen} />
     </Tabs.Navigator>
   );
@@ -89,6 +93,11 @@ export default function RootNavigator() {
             name="PartyForm"
             component={PartyFormScreen}
             options={{ title: 'Party' }}
+          />
+          <RootStack.Screen
+            name="ItemForm"
+            component={ItemFormScreen}
+            options={{ title: 'Item' }}
           />
         </RootStack.Navigator>
       ) : (

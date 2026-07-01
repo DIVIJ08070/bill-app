@@ -13,11 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import { useAuth } from '../auth/AuthContext';
-import { InvoiceAPI, PartyAPI } from '../api/endpoints';
+import { InvoiceAPI, ItemAPI, PartyAPI } from '../api/endpoints';
 import { getErrorMessage } from '../api/client';
 import { AppButton, AppInput, Card } from '../components/ui';
 import { colors, money, radius, spacing } from '../theme';
-import type { NewInvoice, Party } from '../types';
+import type { Item, NewInvoice, Party } from '../types';
 
 interface ItemRow {
   product_name: string;
@@ -37,6 +37,8 @@ export default function CreateInvoiceScreen() {
   const [parties, setParties] = useState<Party[]>([]);
   const [party, setParty] = useState<Party | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [catalog, setCatalog] = useState<Item[]>([]);
+  const [catalogFor, setCatalogFor] = useState<number | null>(null);
   const [applyGst, setApplyGst] = useState(gstAvailable);
   const [items, setItems] = useState<ItemRow[]>([emptyRow()]);
   const [note, setNote] = useState('');
@@ -46,6 +48,7 @@ export default function CreateInvoiceScreen() {
   useFocusEffect(
     useCallback(() => {
       PartyAPI.list().then(setParties).catch(() => {});
+      ItemAPI.list().then(setCatalog).catch(() => {});
     }, [])
   );
 
@@ -156,6 +159,11 @@ export default function CreateInvoiceScreen() {
               </Pressable>
             ) : null}
           </View>
+          {catalog.length > 0 ? (
+            <Pressable onPress={() => setCatalogFor(index)}>
+              <Text style={styles.catalogLink}>＋ Choose from saved items</Text>
+            </Pressable>
+          ) : null}
           <AppInput
             label="Product / service *"
             value={item.product_name}
@@ -216,7 +224,64 @@ export default function CreateInvoiceScreen() {
         setPickerOpen(false);
       }}
     />
+    <ItemPicker
+      open={catalogFor !== null}
+      items={catalog}
+      onClose={() => setCatalogFor(null)}
+      onSelect={(sel) => {
+        setItems((prev) =>
+          prev.map((it, i) =>
+            i === catalogFor
+              ? {
+                  ...it,
+                  product_name: sel.name,
+                  rate: sel.default_rate ? String(sel.default_rate) : it.rate,
+                  gst_rate: sel.default_gst_rate ? String(sel.default_gst_rate) : it.gst_rate,
+                }
+              : it
+          )
+        );
+        setCatalogFor(null);
+      }}
+    />
     </>
+  );
+}
+
+function ItemPicker({
+  open,
+  items,
+  onClose,
+  onSelect,
+}: {
+  open: boolean;
+  items: Item[];
+  onClose: () => void;
+  onSelect: (it: Item) => void;
+}) {
+  return (
+    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
+      <Pressable style={styles.modalBackdrop} onPress={onClose}>
+        <Pressable style={styles.modalSheet}>
+          <Text style={styles.modalTitle}>Select item</Text>
+          <FlatList
+            data={items}
+            keyExtractor={(it) => String(it.id)}
+            ListEmptyComponent={<Text style={styles.hint}>No saved items yet. Add one from the Items tab.</Text>}
+            renderItem={({ item }) => (
+              <Pressable style={styles.modalRow} onPress={() => onSelect(item)}>
+                <Text style={styles.modalRowText}>{item.name}</Text>
+                <Text style={styles.hint}>
+                  {[money(item.default_rate), item.default_gst_rate ? `GST ${item.default_gst_rate}%` : null]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </Text>
+              </Pressable>
+            )}
+          />
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -274,6 +339,7 @@ const styles = StyleSheet.create({
   selectText: { fontSize: 16, color: colors.text },
   selectPlaceholder: { fontSize: 16, color: colors.textMuted },
   addParty: { color: colors.primary, fontWeight: '700', marginTop: spacing.sm },
+  catalogLink: { color: colors.primary, fontWeight: '700', marginBottom: spacing.sm },
   gstRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md },
   hint: { color: colors.textMuted, fontSize: 13, marginTop: spacing.sm },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: colors.text, marginTop: spacing.sm },
