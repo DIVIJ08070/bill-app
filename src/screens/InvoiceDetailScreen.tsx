@@ -13,11 +13,15 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-import { InvoiceAPI } from '../api/endpoints';
+import { InvoiceAPI, PaymentAPI } from '../api/endpoints';
 import { getAccessToken, getErrorMessage } from '../api/client';
 import { AppButton, Badge, Card, Loading, Screen } from '../components/ui';
 import { colors, money, spacing, statusColor } from '../theme';
-import type { Invoice } from '../types';
+import type { Invoice, Payment } from '../types';
+
+const MODE_LABEL: Record<string, string> = {
+  cash: 'Cash', bank_transfer: 'Bank', upi: 'UPI', cheque: 'Cheque', card: 'Card', other: 'Other',
+};
 
 export default function InvoiceDetailScreen() {
   const navigation = useNavigation<any>();
@@ -25,6 +29,7 @@ export default function InvoiceDetailScreen() {
   const id: number = route.params.id;
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [sharing, setSharing] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [payAmount, setPayAmount] = useState('');
@@ -34,6 +39,7 @@ export default function InvoiceDetailScreen() {
     try {
       const inv = await InvoiceAPI.get(id);
       setInvoice(inv);
+      PaymentAPI.list({ invoice_id: id }).then(setPayments).catch(() => setPayments([]));
     } catch (e) {
       Alert.alert('Error', getErrorMessage(e));
     }
@@ -127,6 +133,7 @@ export default function InvoiceDetailScreen() {
           <View>
             <Text style={styles.number}>{invoice.invoice_number}</Text>
             <Text style={styles.muted}>{invoice.invoice_date}</Text>
+            {invoice.due_date ? <Text style={styles.muted}>Due: {invoice.due_date}</Text> : null}
           </View>
           <Badge text={invoice.payment_status} fg={sc.fg} bg={sc.bg} />
         </View>
@@ -166,6 +173,22 @@ export default function InvoiceDetailScreen() {
         <TotalRow label="Paid" value={money(invoice.amount_paid)} />
         <TotalRow label="Balance due" value={money(due)} />
       </Card>
+
+      {payments.length > 0 ? (
+        <Card>
+          <Text style={styles.cardTitle}>Payments</Text>
+          {payments.map((p) => (
+            <View key={p.id} style={styles.payRow}>
+              <View style={styles.flex}>
+                <Text style={styles.itemName}>{money(p.amount)}</Text>
+                <Text style={styles.muted}>
+                  {p.payment_date} · {MODE_LABEL[p.mode] ?? p.mode}{p.reference_no ? ` · ${p.reference_no}` : ''}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </Card>
+      ) : null}
 
       {invoice.amount_in_words ? (
         <Card>
@@ -214,6 +237,7 @@ const styles = StyleSheet.create({
   partyName: { fontSize: 18, fontWeight: '700', color: colors.text, marginTop: 2 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
   itemRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: spacing.sm },
+  payRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
   flex: { flex: 1 },
   itemName: { fontSize: 15, fontWeight: '600', color: colors.text },
   itemAmt: { fontSize: 15, fontWeight: '700', color: colors.text },

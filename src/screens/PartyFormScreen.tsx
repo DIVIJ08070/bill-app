@@ -14,6 +14,8 @@ export default function PartyFormScreen() {
   const editId: number | undefined = route.params?.id;
 
   const [form, setForm] = useState<PartyInput>({ name: '' });
+  const [creditDays, setCreditDays] = useState('');
+  const [openingBalance, setOpeningBalance] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +25,7 @@ export default function PartyFormScreen() {
     navigation.setOptions({ title: editId ? 'Edit Party' : 'New Party' });
     if (editId) {
       PartyAPI.get(editId)
-        .then((p) =>
+        .then((p) => {
           setForm({
             name: p.name,
             address: p.address ?? '',
@@ -34,8 +36,10 @@ export default function PartyFormScreen() {
             gstin: p.gstin ?? '',
             phone: p.phone ?? '',
             email: p.email ?? '',
-          })
-        )
+          });
+          setCreditDays(p.credit_days ? String(p.credit_days) : '');
+          setOpeningBalance(p.opening_balance ? String(p.opening_balance) : '');
+        })
         .catch(() => {});
     }
   }, [editId]);
@@ -58,6 +62,8 @@ export default function PartyFormScreen() {
         gstin: form.gstin || undefined,
         phone: form.phone || undefined,
         email: form.email || undefined,
+        credit_days: creditDays ? Number(creditDays) : 0,
+        opening_balance: openingBalance ? Number(openingBalance) : 0,
       };
       if (editId) await PartyAPI.update(editId, payload);
       else await PartyAPI.create(payload);
@@ -105,12 +111,25 @@ export default function PartyFormScreen() {
         <AppInput label="Place of supply" value={form.place_of_supply} onChangeText={set('place_of_supply')} placeholder="24-Gujarat" />
         <AppInput label="GSTIN" value={form.gstin} onChangeText={set('gstin')} autoCapitalize="characters" />
         <AppInput label="Phone" value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" />
+        <View style={styles.row}>
+          <View style={styles.flex}>
+            <AppInput label="Credit days" value={creditDays} onChangeText={setCreditDays} keyboardType="number-pad" placeholder="30" />
+          </View>
+          <View style={styles.flex}>
+            <AppInput label="Opening balance" value={openingBalance} onChangeText={setOpeningBalance} keyboardType="decimal-pad" placeholder="0" />
+          </View>
+        </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <AppButton title={editId ? 'Save changes' : 'Add party'} onPress={onSave} loading={loading} />
       </Card>
 
-      {editId ? <AppButton title="Delete party" variant="danger" onPress={onDelete} /> : null}
+      {editId ? (
+        <>
+          <AppButton title="View ledger" variant="outline" onPress={() => navigation.navigate('PartyLedger', { partyId: editId })} />
+          <AppButton title="Delete party" variant="danger" onPress={onDelete} />
+        </>
+      ) : null}
     </Screen>
   );
 }

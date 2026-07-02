@@ -6,6 +6,17 @@ export type RootStackParamList = {
   InvoiceDetail: { id: number };
   PartyForm: { id?: number } | undefined;
   ItemForm: { id?: number } | undefined;
+  OutstandingEntry: undefined;
+  PaymentEntry: { partyId?: number; invoiceId?: number } | undefined;
+  Followups: undefined;
+  FollowupForm: { partyId?: number } | undefined;
+  PartyLedger: { partyId: number };
+  OutstandingReport: undefined;
+  AgingReport: undefined;
+  OverdueReport: undefined;
+  CollectionReport: undefined;
+  Summary: undefined;
+  UserManagement: undefined;
 };
 
 export type TabParamList = {
@@ -13,6 +24,7 @@ export type TabParamList = {
   Invoices: undefined;
   Parties: undefined;
   Items: undefined;
+  Collection: undefined;
   Settings: undefined;
 };
 

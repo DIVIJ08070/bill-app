@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { useNavigation } from '@react-navigation/native';
 
 import { useAuth } from '../auth/AuthContext';
 import { CompanyAPI } from '../api/endpoints';
@@ -18,6 +21,7 @@ const BRANDING: { key: BrandingKey; label: string }[] = [
 ];
 
 export default function SettingsScreen() {
+  const navigation = useNavigation<any>();
   const { company, user, signOut, refreshCompany } = useAuth();
   const [form, setForm] = useState({
     address: company?.address ?? '',
@@ -31,9 +35,27 @@ export default function SettingsScreen() {
     bank_ifsc: company?.bank_ifsc ?? '',
     upi_number: company?.upi_number ?? '',
     default_note: company?.default_note ?? '',
+    default_credit_days: company?.default_credit_days ? String(company.default_credit_days) : '',
+    financial_year_start: company?.financial_year_start ?? '',
+    financial_year_end: company?.financial_year_end ?? '',
   });
   const [saving, setSaving] = useState(false);
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  async function onExportBackup() {
+    try {
+      const data = await CompanyAPI.backup();
+      const uri = `${FileSystem.documentDirectory}backup-${Date.now()}.json`;
+      await FileSystem.writeAsStringAsync(uri, JSON.stringify(data, null, 2));
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Company backup' });
+      } else {
+        Alert.alert('Backup saved', uri);
+      }
+    } catch (e) {
+      Alert.alert('Error', getErrorMessage(e));
+    }
+  }
 
   async function onSave() {
     if (form.pincode && !/^\d{6}$/.test(form.pincode)) {
@@ -56,6 +78,9 @@ export default function SettingsScreen() {
         bank_ifsc: form.bank_ifsc || null,
         upi_number: form.upi_number || null,
         default_note: form.default_note || null,
+        default_credit_days: form.default_credit_days ? Number(form.default_credit_days) : 0,
+        financial_year_start: form.financial_year_start || null,
+        financial_year_end: form.financial_year_end || null,
       } as any);
       await refreshCompany();
       Alert.alert('Saved', 'Company details updated.');
@@ -128,11 +153,31 @@ export default function SettingsScreen() {
       </Card>
 
       <Card>
+        <Text style={styles.title}>Financial year & credit</Text>
+        <AppInput label="Default credit days" value={form.default_credit_days} onChangeText={set('default_credit_days')} keyboardType="number-pad" placeholder="30" />
+        <View style={styles.row}>
+          <View style={styles.flex}>
+            <AppInput label="FY start" value={form.financial_year_start} onChangeText={set('financial_year_start')} placeholder="2026-04-01" />
+          </View>
+          <View style={styles.flex}>
+            <AppInput label="FY end" value={form.financial_year_end} onChangeText={set('financial_year_end')} placeholder="2027-03-31" />
+          </View>
+        </View>
+      </Card>
+
+      <Card>
         <Text style={styles.title}>Note on invoices</Text>
         <AppInput label="Default note" value={form.default_note} onChangeText={set('default_note')} multiline />
       </Card>
 
       <AppButton title="Save details" onPress={onSave} loading={saving} />
+
+      <Card>
+        <Text style={styles.title}>Users & data</Text>
+        <AppButton title="User management" variant="outline" onPress={() => navigation.navigate('UserManagement')} />
+        <View style={{ height: spacing.sm }} />
+        <AppButton title="Export backup (JSON)" variant="outline" onPress={onExportBackup} />
+      </Card>
 
       <Card>
         <Text style={styles.title}>Branding</Text>

@@ -70,8 +70,27 @@ export default function DashboardScreen() {
         <Stat label="Total Billed" value={money(data?.total_billed ?? 0)} color={colors.primary} />
         <Stat label="Received" value={money(data?.total_received ?? 0)} color={colors.success} />
         <Stat label="Outstanding" value={money(data?.total_outstanding ?? 0)} color={colors.danger} />
-        <Stat label="Invoices" value={String(data?.total_invoices ?? 0)} color={colors.text} />
+        <Stat label="Overdue" value={money(data?.total_overdue ?? 0)} color={colors.warning} />
       </View>
+
+      <Card>
+        <Text style={styles.cardTitle}>Collection today</Text>
+        <View style={styles.collRow}>
+          <View style={styles.collItem}>
+            <Text style={styles.collValue}>{money(data?.today_collection ?? 0)}</Text>
+            <Text style={styles.collLabel}>Collected</Text>
+          </View>
+          <View style={styles.collItem}>
+            <Text style={styles.collValue}>{money(data?.month_collection ?? 0)}</Text>
+            <Text style={styles.collLabel}>This month</Text>
+          </View>
+          <View style={styles.collItem}>
+            <Text style={styles.collValue}>{data?.today_followups ?? 0}</Text>
+            <Text style={styles.collLabel}>Follow-ups</Text>
+          </View>
+        </View>
+        <AppButton title="Collection center" variant="outline" onPress={() => navigation.navigate('Collection')} />
+      </Card>
 
       <Card>
         <Text style={styles.cardTitle}>Payment status</Text>
@@ -119,6 +138,10 @@ const styles = StyleSheet.create({
   statLabel: { color: colors.textMuted, fontSize: 13 },
   statValue: { fontSize: 20, fontWeight: '800', marginTop: 4 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
+  collRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.md },
+  collItem: { alignItems: 'center', flex: 1 },
+  collValue: { fontSize: 16, fontWeight: '800', color: colors.text },
+  collLabel: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   statusLabel: { color: colors.text, fontSize: 15 },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
