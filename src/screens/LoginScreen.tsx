@@ -32,48 +32,51 @@ export default function LoginScreen() {
   }
 
   return (
-    <Screen>
-      <View style={styles.brand}>
-        <Text style={styles.logo}>GST Billing</Text>
-        <Text style={styles.tagline}>Make bills on the go</Text>
+    <Screen scroll={false}>
+      <View style={styles.container}>
+        <View style={styles.brand}>
+          <Text style={styles.logo}>Ughrani Management</Text>
+          <Text style={styles.tagline}>Power by E & H</Text>
+        </View>
+
+        <Card style={styles.card}>
+          <Text style={styles.title}>Login</Text>
+          <AppInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <AppInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="••••••••"
+          />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <AppButton title="Login" onPress={onSubmit} loading={loading} />
+        </Card>
+
+        <Pressable onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.link}>
+            New company? <Text style={styles.linkStrong}>Create an account</Text>
+          </Text>
+        </Pressable>
       </View>
-
-      <Card>
-        <Text style={styles.title}>Company Login</Text>
-        <AppInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholder="you@company.com"
-        />
-        <AppInput
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="••••••••"
-        />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <AppButton title="Login" onPress={onSubmit} loading={loading} />
-      </Card>
-
-      <Pressable onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>
-          New company? <Text style={styles.linkStrong}>Create an account</Text>
-        </Text>
-      </Pressable>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  brand: { alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.lg },
+  container: { flex: 1, justifyContent: 'center', padding: spacing.lg },
+  brand: { alignItems: 'center', marginBottom: spacing.xl },
   logo: { fontSize: 32, fontWeight: '800', color: colors.primary },
   tagline: { color: colors.textMuted, marginTop: 4 },
   title: { fontSize: 20, fontWeight: '700', color: colors.text, marginBottom: spacing.lg },
   error: { color: colors.danger, marginBottom: spacing.sm },
   link: { textAlign: 'center', color: colors.textMuted, marginTop: spacing.md },
   linkStrong: { color: colors.primary, fontWeight: '700' },
+  card: { width: '100%' },
 });
