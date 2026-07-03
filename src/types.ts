@@ -152,6 +152,7 @@ export interface Dashboard {
   pending_count: number;
   total_parties: number;
   total_overdue: number;
+  today_due: number;
   today_collection: number;
   month_collection: number;
   today_followups: number;

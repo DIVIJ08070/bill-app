@@ -81,6 +81,10 @@ export default function DashboardScreen() {
             <Text style={styles.collLabel}>Collected</Text>
           </View>
           <View style={styles.collItem}>
+            <Text style={styles.collValue}>{money(data?.today_due ?? 0)}</Text>
+            <Text style={styles.collLabel}>Due today</Text>
+          </View>
+          <View style={styles.collItem}>
             <Text style={styles.collValue}>{money(data?.month_collection ?? 0)}</Text>
             <Text style={styles.collLabel}>This month</Text>
           </View>
